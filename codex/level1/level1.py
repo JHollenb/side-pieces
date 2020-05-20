@@ -1,46 +1,43 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # This exploit template was generated via:
 # $ pwn template
 from pwn import *
+import sys, getopt
 
-# Set up pwntools for the correct architecture
-context.update(arch='i386')
-exe = './crackme0x00'
+def strings(filePath):
+    fileStrings = ''
+    p = process('strings ' + filePath, shell=True)
+    fileStrings = p.recvallS()
+    f = open('./stringsLog.log', 'w')
+    f.write('-'*80+'\n')
+    f.write('Level1: Printing strings from {}\n'.format(filePath))
+    f.write('-'*80+'\n')
+    f.write(fileStrings)
+    f.write('-'*80+'\n')
+    f.close()
 
-# Many built-in settings can be controlled on the command-line and show up
-# in "args".  For example, to dump all data sent/received, and disable ASLR
-# for all created processes...
-# ./exploit.py DEBUG NOASLR
+def printErrBanner():
+    print('level1.py -f <file>')
+    sys.exit(2)
+    
+def main(argv):
+    filePath = ''
+    try:
+        opts, args = getopt.getopt(argv,"hf:",["file="])
+    except getopt.GetoptError:
+        printErrBanner()
 
+    if len(opts) == 0:
+        printErrBanner()
 
-def start(argv=[], *a, **kw):
-    '''Start the exploit against the target.'''
-    if args.GDB:
-        return gdb.debug([exe] + argv, gdbscript=gdbscript, *a, **kw)
-    else:
-        return process([exe] + argv, *a, **kw)
+    for opt, arg in opts:
+        if opt == '-h':
+            printErrBanner()
+        elif opt in ("-f", "--file"):
+            filePath = arg
+    return filePath
 
-# Specify your GDB script here for debugging
-# GDB will be launched if the exploit is run via e.g.
-# ./exploit.py GDB
-gdbscript = '''
-continue
-'''.format(**locals())
-
-#===========================================================
-#                    EXPLOIT GOES HERE
-#===========================================================
-
-elf = ELF(exe)
-print ''
-for item in elf.sections:
-    print item
-print ''
-for item in elf.segments:
-    print item
-print ''
-print hex(elf.start)
-elf.save('./jake')
-
-print elf.sections['StringTableSection']
+if __name__ == "__main__":
+    filePath = main(sys.argv[1:])
+    strings(filePath)
