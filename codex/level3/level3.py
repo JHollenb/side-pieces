@@ -28,34 +28,41 @@ def main(argv):
             phone = arg
     return name, age, phone
 
-class DB:
-    def __init__(self, name='', tableName='users'):
+class DbInterface:
+    def __init__(self, name=''):
         dbExists = False
         self.cursor = None
-        self.tableName = tableName
+        self.tableName = 'users'
         self.usefulCmds = {
-        'createTable':'''CREATE TABLE {} (name text, 
-                                          age integer, 
-                                          phone text)'''.format(self.tableName),
-                                          
+        'createTable':'''CREATE TABLE {} (name text primary key, 
+                                          age integer not null, 
+                                          phone text not null,
+                                          unique(name));'''.format(self.tableName),
         'doesTableExist':'''SELECT count(name) 
                             FROM sqlite_master 
                             WHERE type='table' AND name='{}' '''.format(self.tableName),
-
-        'addUser':"INSERT INTO {} VALUES ('{}','{}','{}')",
+        'addUser':"INSERT INTO {} VALUES (?,?,?)".format(self.tableName),
         'selectAll':'SELECT * FROM {} ORDER BY name'.format(self.tableName), 
-        'deleteUser':"DELETE FROM {} WHERE name = '{}';",
-        'updateUser':"UPDATE {} SET name = '{}', age = {}, phone = '{}' where name = '{}'",
+        'deleteUser':"DELETE FROM {} WHERE name = ?".format(self.tableName),
+        'updateUser':"UPDATE {} SET name = ?, age = ?, phone = ? where name = ?".format(self.tableName),
         'clearAllUser':"DELETE FROM {}".format(self.tableName)
         }
         self.open(name)
+
+    def execute(self, cmd, args=None):
+        if args:
+            retval = self.cursor.execute(cmd, args)
+        else:
+            retval = self.cursor.execute(cmd)
+        self.conn.commit()
+        return retval
 
     def open(self, name):
         dbExists = False
         self.conn = sqlite3.connect(name)
         self.cursor = self.conn.cursor()
         if (not self.doesTableExist()):
-            self.cmd(self.usefulCmds['createTable'])
+            self.execute(self.usefulCmds['createTable'])
 
     def doesTableExist(self):
         retval = False
@@ -64,32 +71,34 @@ class DB:
             retval = True
         return retval
 
-    def cmd(self, cmd):
-        retval = self.cursor.execute(cmd)
-        self.conn.commit()
-        return retval
-
     def add(self, name, age, phone):
-        self.cmd(self.usefulCmds['addUser'].format(self.tableName, name, age, phone))
+        try:
+            self.execute(self.usefulCmds['addUser'], [name, age, phone])
+        except sqlite3.IntegrityError:
+            print("")
+            print("!"*80)
+            print("! Sorry, user already exists!")
+            print("!"*80)
+            print("")
 
     def dump(self):
-        for row in self.cmd(self.usefulCmds['selectAll']):
+        for row in self.execute(self.usefulCmds['selectAll']):
                 print(row)
 
     def remove(self, name):
         try:
-            self.cmd(self.usefulCmds['deleteUser'].format(self.tableName, name))
+            self.execute(self.usefulCmds['deleteUser'], [name])
         except sqlite3.OperationalError:
             print("[Error] Could not find user to delete")
 
     def update(self, oldName, name, age, phone):
-        self.cmd(self.usefulCmds['updateUser'].format(self.tableName, name, age, phone, oldName))
+        self.execute(self.usefulCmds['updateUser'], [name, age, phone, oldName])
 
     def clearAll(self):
-        self.cmd(self.usefulCmds['clearAllUser'])
+        self.execute(self.usefulCmds['clearAllUser'])
 
     def export(self, fileName='tmp.csv'):
-        self.cmd(self.usefulCmds['selectAll'])
+        self.execute(self.usefulCmds['selectAll'])
         results = self.cursor.fetchall()
         headers = [i[0] for i in self.cursor.description]
 
@@ -103,43 +112,54 @@ class DB:
     def close(self):
         self.conn.close()
 
-class personDB:
+class UserInterface:
     def __init__(self, name='', age=0, phone=''):
         self.name = name
         self.age = age
         self.phone = phone
-        self.db = DB("database.db")
-
+        self.db = DbInterface("database.db")
+dbInterface
         '''
         if len(name) is 0 or len(age) is 0:
             print("Must enter a name and age")
             exit(1)
         '''
 
+    def check_input(self, prompt, is_string=True):
+        retval = input(prompt)
+
+        if is_string:
+            try:
+                retval = str(retval)
+            except ValueError:
+                print("Thats not a string!")
+                exit(1)
+        else:
+            try:
+                retval = int(retval)
+            except ValueError:
+                print("Tricksie hobbits, age is a number, not a construct")
+                exit(1)
+        return retval
+
     def add(self):
         print("Called add...")
-        name = str(input("Name: "))
-        age = input("Age: ")
-        phone = input("Phone: ")
+        name = self.check_input("Name: ")
+        age = self.check_input("Age: ", True)
+        phone = self.check_input("Phone: ")
         self.db.add(name, age, phone)
 
     def remove(self):
         print("Called remove...")
-        name = str(input("Whom shall we delete? "))
+        name = str(input("Name: "))
         self.db.remove(name)
 
     def edit(self):
         print("Called edit...")
-        oldName = str(input("old name: "))
-        name = str(input("new name: "))
-        age = input("new age: ")
-
-        try:
-            age = int(age)
-        except ValueError:
-            print("Tricksie hobbits, age is a number, not a construct")
-            exit(1)
-        phone = input("new phone: ")
+        oldName = self.check_input("old name: ")
+        name = self.check_input("new name: ")
+        age = self.check_input("new age: ", True)
+        phone = self.check_input("new phone: ")
 
         # TODO: Do we want to ignore values that users skip?
         self.db.update(oldName, name, age, phone)
@@ -194,15 +214,15 @@ class personDB:
 
 if __name__ == "__main__":
     #name, age, phone = main(sys.argv[1:])
-    myDB = personDB()
+    interface = UserInterface()
 
     while(1):
-        myDB.printBanner()
+        interface.printBanner()
         userInput = input('==> ')
         try:
             userInput = int(userInput)
         except ValueError:
             print("Tricksie hobbits")
             exit(1)
-        myDB.process(int(userInput))
+        interface.process(int(userInput))
 
