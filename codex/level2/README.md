@@ -41,8 +41,10 @@ Network Access Layer
 We might be getting into the weeds here. All of the stuff is handled with our python library. I 
 will leave it there because I spent a bit of time researching it. 
 
+There are a million great write-ups for setting up tcp/ip server/client in python. I found 
+[one](https://realpython.com/python-sockets/) and will model my out project after it.
+
 ### Server
-Basically we want to create a server that will do the following:
 1. Create a socket object (IPV4)
 1. Bind an address and port to socket
 1. Listen for connections
@@ -66,8 +68,26 @@ that we may find interesting for this project. From the python docs for [ssl](ht
 
 Sounds pretty cool.
 
-# Authentication
-Encrypt using AES
-Public/Private key
+### Secure Server
+Our new server will look like this:
+1. Create context                            <--- new
+1. Create a socket object (IPV4)
+1. Bind an address and port to socket
+1. Listen for connections
+1. Wrap socket in our context object         <--- new
+1. Accept incoming connections
+1. Try to recieve data
 
+### Secure Client
+1. Create context                            <--- new
+1. Create a socket object (IPV4)
+1. Wrap socket in our context object         <--- new
+1. Try to connect to socket using an address and port
+1. Send our data
+1. Profit!
 
+### Context
+Now, you might be wondering what our `context` object is.
+
+TODO: Overview of SSL
+TODO: Overview of Public/private key
