@@ -57,9 +57,22 @@ From a high-level, the program operates as follows:
 To do this, I created a `DbInterface` class and a `UserInterface` class. The `DbInterface` class is responsible for all things database related; initialization, reads, writes, etc. The `UserInterface` class is responsible for interacting with the users. The includes the display and user input. 
 
 ## `DbInterface`
-The `DbInterface` is built around sqlite. I didn't want to deal with the configurations involved with other databases, launching another process etc. I wanted something light and fast. The sqlite program creates a file that we are able to read and write to. I thought that this would suffice for this project.
+The `DbInterface` is built around sqlite. I didn't want to deal with the configurations 
+involved with other databases, launching another process etc. I wanted something light and 
+fast. The sqlite program creates a file that we are able to read and write to. I thought 
+that this would suffice for this project.
 
-I check the input using Safe Query Parameters. This breaks
+I realized that this application maybe vulnerable to sql injection attacks and sure enough, it
+was. A solution I found in sqlite's documentation:
+
+>Instead, use the DB-API’s parameter substitution. Put ? as a placeholder wherever you want to 
+>use a value, and then provide a tuple of values as the second argument to the cursor’s 
+>execute() method. For example:
+>` c.execute('SELECT * FROM stocks WHERE symbol=?', t)`
+
+Per [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html), parameterized queries should be the first defense against sql injections.
+
+
 ## `UserInterface`
 
 # Security
