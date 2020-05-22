@@ -58,8 +58,18 @@ There are a million great write-ups for setting up tcp/ip server/client in pytho
 1. Profit!
 
 # Privacy
-Now to address privacy. Python has a library called `ssl`. This library has some functionality 
-that we may find interesting for this project. From the python docs for [ssl](https://docs.python.org/3/library/ssl.html):
+Now to address privacy. To address privacy we will use SSL. SSL is short for Secure Socket 
+Layers. SSL/TLS 
+
+> are protocols for establishing authenticated and encrypted links between networked computers
+
+How does this work? SSL/TLS binds a server to cryptographic keys (public and private) known as 
+X509.certs. Here is a [cool website](https://www.ssl.com/faqs/faq-what-is-ssl/) that covers this: 
+
+Now how can we use this in python? Well python has a library called `ssl`. This library has some
+functionality that we may find interesting for this project. From the python docs for 
+[ssl](https://docs.python.org/3/library/ssl.html):
+
 > This module provides access to Transport Layer Security (often known as “Secure Sockets Layer”) 
 > encryption and peer authentication facilities for network sockets, both client-side and 
 > server-side. This module uses the OpenSSL library. It is available on all modern Unix systems, 
@@ -70,24 +80,31 @@ Sounds pretty cool.
 
 ### Secure Server
 Our new server will look like this:
-1. Create context                            <--- new
+1. **Create context**
 1. Create a socket object (IPV4)
 1. Bind an address and port to socket
 1. Listen for connections
-1. Wrap socket in our context object         <--- new
+1. **Wrap socket in our context object**
 1. Accept incoming connections
 1. Try to recieve data
 
 ### Secure Client
-1. Create context                            <--- new
+1. **Create context**
 1. Create a socket object (IPV4)
-1. Wrap socket in our context object         <--- new
+1. **Wrap socket in our context object**
 1. Try to connect to socket using an address and port
 1. Send our data
 1. Profit!
 
 ### Context
-Now, you might be wondering what our `context` object is.
+Now, you might be wondering what our [`context` object](https://docs.python.org/3/library/ssl.html#ssl.SSLContext) is.
 
-TODO: Overview of SSL
-TODO: Overview of Public/private key
+> An SSL context holds various data longer-lived than single SSL connections, such as SSL 
+> configuration options, certificate(s) and private key(s). It also manages a cache of SSL 
+> sessions for server-side sockets, in order to speed up repeated connections from the same 
+> clients.
+
+## Authentication
+TODO 
+* [C++ Google library](https://grpc.io/docs/guides/auth/) is a google authenticator.
+* [Python library](https://twistedmatrix.com/documents/12.3.0/core/howto/ssl.html with built-in user auth.
