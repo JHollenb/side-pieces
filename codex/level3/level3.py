@@ -29,23 +29,22 @@ def main(argv):
     return name, age, phone
 
 class DbInterface:
-    def __init__(self, name=''):
+    def __init__(self, name='database.db'):
         dbExists = False
         self.cursor = None
-        self.tableName = 'users'
         self.usefulCmds = {
-        'createTable':'''CREATE TABLE {} (name text primary key, 
-                                          age integer not null, 
-                                          phone text not null,
-                                          unique(name));'''.format(self.tableName),
+        'createTable':'''CREATE TABLE users (name text primary key, 
+                                             age integer not null, 
+                                             phone text not null,
+                                             unique(name));''',
         'doesTableExist':'''SELECT count(name) 
                             FROM sqlite_master 
-                            WHERE type='table' AND name='{}' '''.format(self.tableName),
-        'addUser':"INSERT INTO {} VALUES (?,?,?)".format(self.tableName),
-        'selectAll':'SELECT * FROM {} ORDER BY name'.format(self.tableName), 
-        'deleteUser':"DELETE FROM {} WHERE name = ?".format(self.tableName),
-        'updateUser':"UPDATE {} SET name = ?, age = ?, phone = ? where name = ?".format(self.tableName),
-        'clearAllUser':"DELETE FROM {}".format(self.tableName)
+                            WHERE type='table' AND name='users' ''',
+        'addUser':"INSERT INTO users VALUES (?,?,?)",
+        'selectAll':'SELECT * FROM users ORDER BY name',
+        'deleteUser':"DELETE FROM users WHERE name = ?",
+        'updateUser':"UPDATE users SET name = ?, age = ?, phone = ? where name = ?",
+        'clearAllUser':"DELETE FROM users"
         }
         self.open(name)
 
@@ -97,7 +96,7 @@ class DbInterface:
     def clearAll(self):
         self.execute(self.usefulCmds['clearAllUser'])
 
-    def export(self, fileName='tmp.csv'):
+    def export(self, fileName='dbDump.csv'):
         self.execute(self.usefulCmds['selectAll'])
         results = self.cursor.fetchall()
         headers = [i[0] for i in self.cursor.description]
@@ -118,7 +117,6 @@ class UserInterface:
         self.age = age
         self.phone = phone
         self.db = DbInterface("database.db")
-dbInterface
         '''
         if len(name) is 0 or len(age) is 0:
             print("Must enter a name and age")

@@ -43,7 +43,7 @@ The options are as follows:
 * Remove - Remove a user. The user provides the name and that row is removed.
 * Edit - Edit a users information. 
 * Dump - Dump the contents of the user table to the CLI.
-* Export - Export the contents of the DB to a csv in the current directory.
+* Export - Export the contents of the DB to a csv in the current directory. The default name for this file is `dbDump.csv`.
 * Clear all - Clear all entries in the DB.
 
 # Design
@@ -74,7 +74,9 @@ Per [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevent
 
 
 ## `UserInterface`
+The `UserInterface` spins on a forever loop, waiting for user input. The user input is verified 
+via the `check_input()` function. This does not santize input but can be used for that. This 
+function currently only tries to cast values to either an `int` or a `string`.
 
-# Security
-# Testing
-
+Depending on what the user input, a call is made to the `DbInterface`. The `UserInterface` 
+contains a handle to the `DbInterace`. The `DbInterface` will handle all DB interactions. 
